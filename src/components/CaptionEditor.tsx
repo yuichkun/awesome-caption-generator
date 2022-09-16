@@ -23,6 +23,9 @@ export const CaptionEditor: FC = () => {
     <div>
       <h1 className="font-mono text-xl code">Awesome Caption Generator</h1>
       <input
+        style={{
+          display: videoFile ? "none" : "initial",
+        }}
         type="file"
         accept="video/*"
         onChange={(e) => setVideoFile(e.target.files![0])}
