@@ -1,6 +1,5 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 
-// TODO: show video
 // TODO: paint video inside canvas
 // TODO: place some content over the video
 // TODO: export the video
@@ -8,14 +7,27 @@ import { FC, useState } from "react";
 
 export const CaptionEditor: FC = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const videoElRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoFile && videoElRef.current) {
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(videoFile);
+      fileReader.onload = () => {
+        if (!videoElRef.current) throw new Error("videoEl gone");
+        videoElRef.current.src = fileReader.result as string;
+      };
+    }
+  }, [videoFile]);
   return (
     <div>
       <h1 className="font-mono text-xl code">Awesome Caption Generator</h1>
       <input
         type="file"
         accept="video/*"
-        onChange={(e) => setVideoFile(e.target.files[0])}
+        onChange={(e) => setVideoFile(e.target.files![0])}
       />
+      <video controls ref={videoElRef} />
     </div>
   );
 };
