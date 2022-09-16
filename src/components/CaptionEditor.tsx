@@ -58,11 +58,52 @@ export const CaptionEditor: FC = () => {
     const encoder = await HME.createH264MP4Encoder();
     encoder.width = canvasElRef.current.width;
     encoder.height = canvasElRef.current.height;
+    // TODO: properly set the framerate according to the original video
+    encoder.frameRate = 1;
     console.log(encoder);
     encoder.initialize();
 
-    // TODO: do something here
+    function drawFrame() {
+      if (!(canvasElRef.current && videoElRef.current)) return;
+      const ctx = canvasElRef.current.getContext("2d");
+      if (!ctx) throw new Error("2D context not available");
+      ctx.drawImage(
+        videoElRef.current,
+        0,
+        0,
+        canvasElRef.current.width,
+        canvasElRef.current.height
+      );
+    }
+    const ctx = canvasElRef.current.getContext("2d");
+    async function traverseFrames() {
+      return new Promise<void>((resolve) => {
+        function writeFrame() {
+          if (!(canvasElRef.current && videoElRef.current)) return;
+          if (!ctx) throw new Error("2D context not available");
+          drawFrame();
+          encoder.addFrameRgba(
+            ctx.getImageData(
+              0,
+              0,
+              canvasElRef.current.width,
+              canvasElRef.current.height
+            ).data
+          );
+          console.log("current time:", videoElRef.current.currentTime);
+          // TODO: increment step by the proper time according to the fps
+          videoElRef.current.currentTime += 1;
+          if (videoElRef.current.currentTime < videoElRef.current.duration) {
+            requestAnimationFrame(writeFrame);
+          } else {
+            resolve();
+          }
+        }
+        writeFrame();
+      });
+    }
 
+    await traverseFrames();
     encoder.finalize();
     const uint8Array = encoder.FS.readFile(encoder.outputFilename);
     console.log("final buffer", uint8Array);
