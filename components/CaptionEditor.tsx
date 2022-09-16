@@ -11,7 +11,11 @@ export const CaptionEditor: FC = () => {
   return (
     <div>
       <h1 className="font-mono text-xl code">Awesome Caption Generator</h1>
-      <input type="file" onChange={(e) => setVideoFile(e.target.files[0])} />
+      <input
+        type="file"
+        accept="video/*"
+        onChange={(e) => setVideoFile(e.target.files[0])}
+      />
     </div>
   );
 };
