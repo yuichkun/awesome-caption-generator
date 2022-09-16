@@ -27,7 +27,10 @@ export const CaptionEditor: FC = () => {
         accept="video/*"
         onChange={(e) => setVideoFile(e.target.files![0])}
       />
-      <video controls ref={videoElRef} />
+      <div className="relative">
+        <canvas className="absolute w-full h-full" />
+        <video controls ref={videoElRef} />
+      </div>
     </div>
   );
 };
