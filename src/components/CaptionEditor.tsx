@@ -31,6 +31,16 @@ export const CaptionEditor: FC = () => {
         <canvas className="absolute w-full h-full" />
         <video controls ref={videoElRef} />
       </div>
+      <button
+        className="mt-8"
+        onClick={() => {
+          if (videoElRef.current) {
+            videoElRef.current.play();
+          }
+        }}
+      >
+        Play
+      </button>
     </div>
   );
 };
