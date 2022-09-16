@@ -1,7 +1,7 @@
 import { FC, MouseEventHandler, useEffect, useRef, useState } from "react";
+import * as HME from "h264-mp4-encoder";
 
 // TODO: place some content over the video
-// TODO: export the video
 // TODO: add seek bar
 
 export const CaptionEditor: FC = () => {
@@ -52,6 +52,33 @@ export const CaptionEditor: FC = () => {
       videoElRef.current.play();
     }
   };
+
+  const onExport: MouseEventHandler<HTMLButtonElement> = async () => {
+    if (!(canvasElRef.current && videoElRef.current)) return;
+    const encoder = await HME.createH264MP4Encoder();
+    encoder.width = canvasElRef.current.width;
+    encoder.height = canvasElRef.current.height;
+    console.log(encoder);
+    encoder.initialize();
+
+    // TODO: do something here
+
+    encoder.finalize();
+    const uint8Array = encoder.FS.readFile(encoder.outputFilename);
+    console.log("final buffer", uint8Array);
+
+    const download = (url: string, filename?: string) => {
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename || "download";
+      anchor.click();
+    };
+
+    download(
+      URL.createObjectURL(new Blob([uint8Array], { type: "video/mp4" }))
+    );
+    encoder.delete();
+  };
   return (
     <div>
       <h1 className="font-mono text-xl code">Awesome Caption Generator</h1>
@@ -67,9 +94,16 @@ export const CaptionEditor: FC = () => {
         <canvas ref={canvasElRef} />
         <video className="hidden" controls ref={videoElRef} />
       </div>
-      <button className="mt-8" onClick={onPlay}>
-        Play
-      </button>
+      <div>
+        <button className="mt-8" onClick={onPlay}>
+          Play
+        </button>
+      </div>
+      <div>
+        <button className="mt-8" onClick={onExport}>
+          Export
+        </button>
+      </div>
     </div>
   );
 };
