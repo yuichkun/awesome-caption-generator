@@ -1,6 +1,7 @@
 import { FC, MouseEventHandler, useEffect, useRef, useState } from "react";
 import * as HME from "h264-mp4-encoder";
 import { AnalyzedVideoData, analyzeVideoFile } from "../utils/analyzeVideo";
+import { download } from "../utils/download";
 
 // TODO: add seek bar
 export const CaptionEditor: FC = () => {
@@ -134,13 +135,6 @@ export const CaptionEditor: FC = () => {
     encoder.finalize();
     const uint8Array = encoder.FS.readFile(encoder.outputFilename);
     console.log("final buffer", uint8Array);
-
-    const download = (url: string, filename?: string) => {
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = filename || "download";
-      anchor.click();
-    };
 
     download(
       URL.createObjectURL(new Blob([uint8Array], { type: "video/mp4" }))
