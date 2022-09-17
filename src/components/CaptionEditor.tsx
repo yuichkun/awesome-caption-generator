@@ -2,7 +2,6 @@ import { FC, MouseEventHandler, useEffect, useRef, useState } from "react";
 import * as HME from "h264-mp4-encoder";
 import { AnalyzedVideoData, analyzeVideoFile } from "../utils/analyzeVideo";
 
-// TODO: place some content over the video
 // TODO: add seek bar
 
 export const CaptionEditor: FC = () => {
@@ -88,6 +87,7 @@ export const CaptionEditor: FC = () => {
             throw new Error("oops");
           if (!ctx) throw new Error("2D context not available");
           drawFrame();
+          ctx.fillRect(10, 10, 150, 100);
           encoder.addFrameRgba(
             ctx.getImageData(
               0,
