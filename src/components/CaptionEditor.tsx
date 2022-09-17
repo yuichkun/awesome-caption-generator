@@ -1,5 +1,6 @@
 import { FC, MouseEventHandler, useEffect, useRef, useState } from "react";
 import * as HME from "h264-mp4-encoder";
+import { analyzeVideoFile } from "../utils/analyzeVideo";
 
 // TODO: place some content over the video
 // TODO: add seek bar
@@ -12,6 +13,7 @@ export const CaptionEditor: FC = () => {
   useEffect(() => {
     if (videoFile && videoElRef.current) {
       const fileReader = new FileReader();
+      analyzeVideoFile(videoFile).then(console.log);
       fileReader.readAsDataURL(videoFile);
       fileReader.onload = () => {
         if (!videoElRef.current) throw new Error("videoEl gone");
