@@ -2,6 +2,7 @@ import { FC, MouseEventHandler, useEffect, useRef, useState } from "react";
 import * as HME from "h264-mp4-encoder";
 import { AnalyzedVideoData, analyzeVideoFile } from "../utils/analyzeVideo";
 import { download } from "../utils/download";
+import { readVideoFile } from "../utils/readFile";
 
 // TODO: add seek bar
 export const CaptionEditor: FC = () => {
@@ -13,14 +14,12 @@ export const CaptionEditor: FC = () => {
   );
 
   useEffect(() => {
-    if (videoFile && videoElRef.current) {
-      const fileReader = new FileReader();
+    if (videoFile) {
       analyzeVideoFile(videoFile).then(setVideoMetaData);
-      fileReader.readAsDataURL(videoFile);
-      fileReader.onload = () => {
+      readVideoFile(videoFile).then((result) => {
         if (!videoElRef.current) throw new Error("videoEl gone");
-        videoElRef.current.src = fileReader.result as string;
-      };
+        videoElRef.current.src = result;
+      });
     }
   }, [videoFile]);
 
