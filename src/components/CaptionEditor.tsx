@@ -80,6 +80,7 @@ export const CaptionEditor: FC = () => {
   const onExport: MouseEventHandler<HTMLButtonElement> = async () => {
     if (!(canvasElRef.current && videoElRef.current && videoMetaData))
       throw new Error("oops");
+    videoElRef.current.currentTime = 0;
     const encoder = await HME.createH264MP4Encoder();
     encoder.width = canvasElRef.current.width;
     encoder.height = canvasElRef.current.height;
