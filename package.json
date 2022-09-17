@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "h264-mp4-encoder": "1.0.12",
+    "mediainfo.js": "0.1.8",
     "next": "12.1.0",
     "react": "17.0.2",
     "react-dom": "17.0.2"
