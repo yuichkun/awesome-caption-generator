@@ -3,7 +3,6 @@ import * as HME from "h264-mp4-encoder";
 import { AnalyzedVideoData, analyzeVideoFile } from "../utils/analyzeVideo";
 
 // TODO: add seek bar
-
 export const CaptionEditor: FC = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const videoElRef = useRef<HTMLVideoElement>(null);
@@ -30,6 +29,27 @@ export const CaptionEditor: FC = () => {
         if (!(canvasElRef.current && videoElRef.current)) return;
         canvasElRef.current.width = videoElRef.current.videoWidth;
         canvasElRef.current.height = videoElRef.current.videoHeight;
+        if (!(canvasElRef.current && videoElRef.current))
+          throw new Error("not ready");
+        const ctx = canvasElRef.current.getContext("2d");
+        if (!ctx) throw new Error("2D context not available");
+
+        function render() {
+          if (!(canvasElRef.current && videoElRef.current))
+            throw new Error("not ready");
+          if (!ctx) throw new Error("2D context not available");
+          ctx.drawImage(
+            videoElRef.current,
+            0,
+            0,
+            canvasElRef.current.width,
+            canvasElRef.current.height
+          );
+        }
+        // some weird work around because it doesn't render at the first time for some reason
+        videoElRef.current.currentTime = 0;
+        render();
+        setTimeout(render, 1000);
       });
 
       videoElRef.current.addEventListener("play", () => {
