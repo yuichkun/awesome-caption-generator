@@ -1,6 +1,6 @@
 import { FC, MouseEventHandler, useEffect, useRef, useState } from "react";
 import * as HME from "h264-mp4-encoder";
-import { analyzeVideoFile } from "../utils/analyzeVideo";
+import { AnalyzedVideoData, analyzeVideoFile } from "../utils/analyzeVideo";
 
 // TODO: place some content over the video
 // TODO: add seek bar
@@ -9,11 +9,14 @@ export const CaptionEditor: FC = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const videoElRef = useRef<HTMLVideoElement>(null);
   const canvasElRef = useRef<HTMLCanvasElement>(null);
+  const [videoMetaData, setVideoMetaData] = useState<AnalyzedVideoData | null>(
+    null
+  );
 
   useEffect(() => {
     if (videoFile && videoElRef.current) {
       const fileReader = new FileReader();
-      analyzeVideoFile(videoFile).then(console.log);
+      analyzeVideoFile(videoFile).then(setVideoMetaData);
       fileReader.readAsDataURL(videoFile);
       fileReader.onload = () => {
         if (!videoElRef.current) throw new Error("videoEl gone");
@@ -56,12 +59,12 @@ export const CaptionEditor: FC = () => {
   };
 
   const onExport: MouseEventHandler<HTMLButtonElement> = async () => {
-    if (!(canvasElRef.current && videoElRef.current)) return;
+    if (!(canvasElRef.current && videoElRef.current && videoMetaData))
+      throw new Error("oops");
     const encoder = await HME.createH264MP4Encoder();
     encoder.width = canvasElRef.current.width;
     encoder.height = canvasElRef.current.height;
-    // TODO: properly set the framerate according to the original video
-    encoder.frameRate = 1;
+    encoder.frameRate = videoMetaData.frameRate;
     console.log(encoder);
     encoder.initialize();
 
@@ -81,7 +84,8 @@ export const CaptionEditor: FC = () => {
     async function traverseFrames() {
       return new Promise<void>((resolve) => {
         function writeFrame() {
-          if (!(canvasElRef.current && videoElRef.current)) return;
+          if (!(canvasElRef.current && videoElRef.current && videoMetaData))
+            throw new Error("oops");
           if (!ctx) throw new Error("2D context not available");
           drawFrame();
           encoder.addFrameRgba(
@@ -93,8 +97,8 @@ export const CaptionEditor: FC = () => {
             ).data
           );
           console.log("current time:", videoElRef.current.currentTime);
-          // TODO: increment step by the proper time according to the fps
-          videoElRef.current.currentTime += 1;
+          const frameDuration = 1 / videoMetaData.frameRate;
+          videoElRef.current.currentTime += frameDuration;
           if (videoElRef.current.currentTime < videoElRef.current.duration) {
             requestAnimationFrame(writeFrame);
           } else {
