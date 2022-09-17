@@ -1,8 +1,8 @@
 import { FC, MouseEventHandler, useEffect, useRef, useState } from "react";
 import * as HME from "h264-mp4-encoder";
 import { AnalyzedVideoData, analyzeVideoFile } from "../utils/analyzeVideo";
-import { download } from "../utils/download";
 import { readVideoFile } from "../utils/readFile";
+import { exportVideo } from "../utils/export";
 
 // TODO: add seek bar
 export const CaptionEditor: FC = () => {
@@ -78,30 +78,24 @@ export const CaptionEditor: FC = () => {
   };
 
   const onExport: MouseEventHandler<HTMLButtonElement> = async () => {
-    if (!(canvasElRef.current && videoElRef.current && videoMetaData))
-      throw new Error("oops");
-    videoElRef.current.currentTime = 0;
-    const encoder = await HME.createH264MP4Encoder();
-    encoder.width = canvasElRef.current.width;
-    encoder.height = canvasElRef.current.height;
-    encoder.frameRate = videoMetaData.frameRate;
-    console.log(encoder);
-    encoder.initialize();
-
-    function drawFrame() {
-      if (!(canvasElRef.current && videoElRef.current)) return;
+    async function traverseFrames(encoder: HME.H264MP4Encoder) {
+      function drawFrame() {
+        if (!(canvasElRef.current && videoElRef.current))
+          throw new Error("cannot draw frame");
+        const ctx = canvasElRef.current.getContext("2d");
+        if (!ctx) throw new Error("2D context not available");
+        ctx.drawImage(
+          videoElRef.current,
+          0,
+          0,
+          canvasElRef.current.width,
+          canvasElRef.current.height
+        );
+      }
+      if (!(videoElRef.current && canvasElRef.current))
+        throw new Error("cannot traverse frames");
+      videoElRef.current.currentTime = 0;
       const ctx = canvasElRef.current.getContext("2d");
-      if (!ctx) throw new Error("2D context not available");
-      ctx.drawImage(
-        videoElRef.current,
-        0,
-        0,
-        canvasElRef.current.width,
-        canvasElRef.current.height
-      );
-    }
-    const ctx = canvasElRef.current.getContext("2d");
-    async function traverseFrames() {
       return new Promise<void>((resolve) => {
         function writeFrame() {
           if (!(canvasElRef.current && videoElRef.current && videoMetaData))
@@ -130,15 +124,12 @@ export const CaptionEditor: FC = () => {
       });
     }
 
-    await traverseFrames();
-    encoder.finalize();
-    const uint8Array = encoder.FS.readFile(encoder.outputFilename);
-    console.log("final buffer", uint8Array);
-
-    download(
-      URL.createObjectURL(new Blob([uint8Array], { type: "video/mp4" }))
-    );
-    encoder.delete();
+    await exportVideo({
+      width: canvasElRef.current!.width,
+      height: canvasElRef.current!.height,
+      frameRate: videoMetaData!.frameRate,
+      traverseFrames,
+    });
   };
   return (
     <div>
